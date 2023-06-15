@@ -1,13 +1,16 @@
 import { useState } from "react";
 
 const App = () => {
-  const [persons, setPersons] = useState([{ name: "Arto Hellas" }]);
+  const [persons, setPersons] = useState([
+    { name: "Arto Hellas", phone: "0529329322" },
+  ]);
   const [newName, setNewName] = useState("");
+  const [phone, setPhone] = useState("");
   const addName = (e) => {
     e.preventDefault();
     persons.some((person) => person.name === newName)
       ? alert(`${newName} is already added to phonebook`)
-      : setPersons(persons.concat({ name: newName }));
+      : setPersons(persons.concat({ name: newName, phone: phone }));
     setNewName("");
   };
   return (
@@ -21,6 +24,12 @@ const App = () => {
               setNewName(e.target.value);
             }}
           />
+          phone:{" "}
+          <input
+            onChange={(e) => {
+              setPhone(e.target.value);
+            }}
+          />
         </div>
         <div>
           <button onClick={addName} type="submit">
@@ -31,7 +40,9 @@ const App = () => {
       <h2>Numbers</h2>
       <ul>
         {persons.map((person) => (
-          <li key={person.name}>{person.name}</li>
+          <li key={person.name}>
+            {person.name} {person.phone}
+          </li>
         ))}
       </ul>
     </div>
