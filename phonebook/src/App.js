@@ -16,10 +16,38 @@ const App = () => {
   };
   const addName = (e) => {
     e.preventDefault();
-    persons.some((person) => person.name === newName)
-      ? alert(`${newName} is already added to phonebook`)
-      : addPerson({ name: newName, number });
+    let id;
+    if (
+      persons.some((person) => {
+        id = person.id;
+        return person.name === newName;
+      })
+    ) {
+      if (
+        window.confirm(
+          `${newName} is already added to phonebook, replace the old number with a new one?`
+        )
+      ) {
+        let newObject = { name: newName, number: number, id: id };
+        personService.updateNumber(id, newObject).then((res) => {
+          console.log(res.data);
+          setPersons(
+            persons.map((person) => (id !== person.id ? person : res.data))
+          );
+        });
+      }
+    } else addPerson({ name: newName, number });
     setNewName("");
+  };
+  const deletePerson = (id) => {
+    const person = persons.find((person) => id === person.id);
+    if (window.confirm(`Delete ${person.name} ?`)) {
+      personService
+        .deletePerson(id)
+        .then((res) =>
+          setPersons(persons.filter((person) => person.id !== id))
+        );
+    }
   };
   useEffect(() => {
     axios.get("http://localhost:3001/persons").then((response) => {
@@ -36,7 +64,7 @@ const App = () => {
         addName={addName}
       />
       <h2>Numbers</h2>
-      <DisplayBook persons={persons} />
+      <DisplayBook persons={persons} deletePerson={deletePerson} />
     </div>
   );
 };
