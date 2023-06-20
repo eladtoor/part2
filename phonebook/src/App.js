@@ -13,12 +13,44 @@ const App = () => {
   const [message, setMessage] = useState(null);
   const [messageStyle, setMessageStyle] = useState({});
 
-  const addPerson = (newObject) => {
-    personService.create(newObject).then((res) => {
-      setPersons(persons.concat(res.data));
-    });
+  const addPerson = async (newObject) => {
+    personService
+      .create(newObject)
+      .then((res) => {
+        setMessageStyle({
+          color: "green",
+          background: "lightgrey",
+          fontSize: 20,
+          borderStyle: "solid",
+          borderRadius: 5,
+          padding: 10,
+          marginbottom: 10,
+        });
+        setMessage(`Added ${newName}`);
+        setTimeout(() => {
+          setMessage("");
+          setMessageStyle(null);
+        }, 5000);
+        setPersons(persons.concat(res.data));
+      })
+      .catch((error) => {
+        setMessage(error.response.data.error);
+        setMessageStyle({
+          color: "red",
+          background: "lightgrey",
+          fontSize: 20,
+          borderStyle: "solid",
+          borderRadius: 5,
+          padding: 10,
+          marginbottom: 10,
+        });
+        setTimeout(() => {
+          setMessage("");
+          setMessageStyle(null);
+        }, 5000);
+      });
   };
-  const addName = (e) => {
+  const addName = async (e) => {
     e.preventDefault();
     let id;
     if (
@@ -32,45 +64,65 @@ const App = () => {
           `${newName} is already added to phonebook, replace the old number with a new one?`
         )
       ) {
-        let newObject = { name: newName, number: number, id: id };
-        personService.updateNumber(id, newObject).then((res) => {
-          setPersons(
-            persons.map((person) => (id !== person.id ? person : res.data))
-          );
-          setMessage(`Updated ${newName}`);
-          setMessageStyle({
-            color: "green",
-            background: "lightgrey",
-            fontSize: 20,
-            borderStyle: "solid",
-            borderRadius: 5,
-            padding: 10,
-            marginbottom: 10,
+        let newObject = { name: newName, number, id };
+        console.log(newObject);
+        personService
+          .updateNumber(id, newObject)
+          .then((res) => {
+            setPersons(
+              persons.map((person) => {
+                return id !== person.id ? person : res.data;
+              })
+            );
+
+            setMessage(`Updated ${newName}`);
+            setMessageStyle({
+              color: "green",
+              background: "lightgrey",
+              fontSize: 20,
+              borderStyle: "solid",
+              borderRadius: 5,
+              padding: 10,
+              marginbottom: 10,
+            });
+            setTimeout(() => {
+              setMessage("");
+              setMessageStyle(null);
+            }, 5000);
+          })
+          .catch((error) => {
+            setMessage(error.response.data.error);
+            setMessageStyle({
+              color: "red",
+              background: "lightgrey",
+              fontSize: 20,
+              borderStyle: "solid",
+              borderRadius: 5,
+              padding: 10,
+              marginbottom: 10,
+            });
+            setTimeout(() => {
+              setMessage("");
+              setMessageStyle(null);
+            }, 5000);
           });
-          setTimeout(() => {
-            setMessage("");
-            setMessageStyle(null);
-          }, 5000);
-        });
       }
     } else {
-      addPerson({ name: newName, number });
-      setMessageStyle({
-        color: "green",
-        background: "lightgrey",
-        fontSize: 20,
-        borderStyle: "solid",
-        borderRadius: 5,
-        padding: 10,
-        marginbottom: 10,
-      });
-      setMessage(`Added ${newName}`);
-      setTimeout(() => {
-        setMessage("");
-        setMessageStyle(null);
-      }, 5000);
+      if (number) {
+        await addPerson({ name: newName, number });
+      } else {
+        setMessage("Phone cannot be empty");
+        setMessageStyle({
+          color: "red",
+          background: "lightgrey",
+          fontSize: 20,
+          borderStyle: "solid",
+          borderRadius: 5,
+          padding: 10,
+          marginbottom: 10,
+        });
+      }
     }
-    setNewName("");
   };
   const deletePerson = (id) => {
     const person = persons.find((person) => id === person.id);
@@ -98,7 +150,7 @@ const App = () => {
     }
   };
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
+    axios.get("/api/persons").then((response) => {
       setPersons(response.data);
     });
   }, []);
